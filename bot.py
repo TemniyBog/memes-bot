@@ -1,47 +1,42 @@
 import asyncio
-# from loguru import logger
-import logging
+import sys
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
-from aioredis import Redis
+from aiogram.utils.callback_answer import CallbackAnswerMiddleware
+from loguru import logger
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
-from config import TOKEN, REDIS_HOST, REDIS_PORT, REDIS_DB
-from handlers import for_all
-from memes_bot.db.create_db import create_tables
+from config import TOKEN, REDIS_HOST, REDIS_PORT, REDIS_DB, DB_PATH
+from handlers import add
+from memes_bot.db.create_db import Base
+from memes_bot.handlers import commands, find
+from memes_bot.middlewares.db import DbSessionMiddleware
 
-logging.basicConfig(level=logging.DEBUG)
-
-
-# logger.add('logs/my_log.log', level='DEBUG')
-# logger.debug('Error')
-# logger.info('Information message')
-# logger.warning('Warning')
+logger.add('logs/my_log.log', level='DEBUG')
+logger.debug('Error')
+logger.info('Information message')
+logger.warning('Warning')
 
 
 async def main():
     bot = Bot(token=TOKEN)
+    engine = create_async_engine(url=DB_PATH, echo=True)
+    sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
+    storage = RedisStorage.from_url(f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}')
+    dp = Dispatcher(storage=storage)
+    dp.update.middleware(DbSessionMiddleware(session_pool=sessionmaker))
 
-    redis = Redis()
+    dp.callback_query.middleware(CallbackAnswerMiddleware())
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
-    # storage = RedisStorage.from_url(f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}')
-    dp = Dispatcher(storage=RedisStorage(redis=redis))
+    dp.include_router(commands.router)
+    dp.include_router(find.router)
+    dp.include_router(add.router)
 
-    # job_stores = {
-    #     "default": RedisJobStore(
-    #         jobs_key="trips_jobs",
-    #         run_times_key="trips_running",
-    #         host=REDIS_HOST,
-    #         db=REDIS_DB,
-    #         port=REDIS_PORT
-    #     )
-    # }
-
-    dp.include_router(for_all.router)
-    create_tables()
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
-
+    await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
 
 if __name__ == "__main__":
     asyncio.run(main())

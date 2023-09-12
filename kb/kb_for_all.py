@@ -1,7 +1,6 @@
-from aiogram import types
-from aiogram.types import  InlineKeyboardMarkup, InlineKeyboardButton, KeyboardButton
-from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 
 def main_menu() -> ReplyKeyboardMarkup:

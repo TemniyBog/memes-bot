@@ -9,3 +9,6 @@ class UserState(StatesGroup):
     wait_for_tags = State()
     wait_for_approve = State()
     approved = State()
+
+    # ищем мем по тегу
+    wait_for_user_tag = State()

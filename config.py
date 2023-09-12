@@ -16,4 +16,6 @@ REDIS_PASSWORD = str(os.getenv('REDIS_PASSWORD'))
 
 TOKEN = str(os.getenv('TOKEN'))
 
-DB_PATH = f'postgresql://{PGUSER}:{PGPASSWORD}@{PGHOST}:{PGPORT}/{PGDATABASE}'
+ADMIN = int(os.getenv('ADMIN'))
+
+DB_PATH = f'postgresql+asyncpg://{PGUSER}:{PGPASSWORD}@{PGHOST}/{PGDATABASE}'
