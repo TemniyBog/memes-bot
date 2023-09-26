@@ -17,12 +17,14 @@ REDIS_PASSWORD = str(os.getenv('REDIS_PASSWORD'))
 
 TOKEN = str(os.getenv('TOKEN'))
 
-ADMIN = int(os.getenv('ADMIN'))
+ADMINS = set()
+st_users = dotenv_values().get('ADMINS').split(',')
+for y in st_users:
+    ADMINS.add(int(y))
 
 USERS = set()
 st_users = dotenv_values().get('USERS').split(',')
 for x in st_users:
-    a = int(x)
-    USERS.add(a)
+    USERS.add(int(x))
 
 DB_PATH = f'postgresql+asyncpg://{PGUSER}:{PGPASSWORD}@{PGHOST}/{PGDATABASE}'

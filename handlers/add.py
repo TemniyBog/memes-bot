@@ -6,7 +6,7 @@ from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from memes_bot.config import ADMIN
+from memes_bot.config import ADMINS
 from memes_bot.db.create_db import Meme, Tag
 from memes_bot.filters.chat_type import ChatTypeFilter
 from memes_bot.kb.kb_for_all import main_menu, approved
@@ -15,7 +15,7 @@ from memes_bot.states.states_for_all import UserState
 router = Router()
 
 router.message.filter(ChatTypeFilter(chat_type='private'),
-                      F.from_user.id == ADMIN)
+                      F.from_user.id == ADMINS)
 
 
 @router.message(UserState.wait_for, Text(text="Добавить мем", ignore_case=True))
