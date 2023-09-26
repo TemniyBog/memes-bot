@@ -11,6 +11,7 @@ class Meme(Base):
     hash = Column(String(150), unique=True)
     tags = relationship('Tag', backref='meme', single_parent=True, cascade="all, delete-orphan")
 
+
 class Tag(Base):
     __tablename__ = 'tags'
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)

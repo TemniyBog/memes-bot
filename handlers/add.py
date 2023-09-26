@@ -6,13 +6,14 @@ from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from memes_bot.config import ADMIN
 from memes_bot.db.create_db import Meme, Tag
 from memes_bot.filters.chat_type import ChatTypeFilter
 from memes_bot.kb.kb_for_all import main_menu, approved
 from memes_bot.states.states_for_all import UserState
-from memes_bot.config import ADMIN
 
 router = Router()
+
 router.message.filter(ChatTypeFilter(chat_type='private'),
                       F.from_user.id == ADMIN)
 
@@ -56,14 +57,17 @@ async def add_in_db(callback_query: types.CallbackQuery, bot: Bot, state: FSMCon
     for each in tags_list:
         await session.merge(Tag(meme_id=meme.id, title=each.lower()))
     await session.commit()
+    objects_meme = await session.execute(select(Meme))
+    memes = len(objects_meme.all())
     logger.info(f'Сохранили теги {tags_list} в базе')
     await state.clear()
     await state.set_state(UserState.wait_for)
-    await bot.send_message(chat_id=callback_query.from_user.id, text='Успешно!\nДобавить ещё мем?',
+    await bot.send_message(chat_id=callback_query.from_user.id, text=f'У нас уже {memes} мемов!\n'
+                                                                     f'Добавить ещё мем?',
                            reply_markup=main_menu())
 
 
 @router.callback_query(UserState.wait_for_approve, Text('return'))
 async def add_in_db(callback_query: types.CallbackQuery, state: FSMContext):
-    await state.clear()
-    return await download_meme(callback_query.message, state)
+    await state.set_state(UserState.wait_for_tags)
+    await callback_query.message.answer('Напишите теги через запятую')

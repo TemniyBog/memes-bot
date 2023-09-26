@@ -1,5 +1,6 @@
 import os
-from dotenv import load_dotenv
+
+from dotenv import load_dotenv, dotenv_values
 
 load_dotenv()
 
@@ -17,5 +18,11 @@ REDIS_PASSWORD = str(os.getenv('REDIS_PASSWORD'))
 TOKEN = str(os.getenv('TOKEN'))
 
 ADMIN = int(os.getenv('ADMIN'))
+
+USERS = set()
+st_users = dotenv_values().get('USERS').split(',')
+for x in st_users:
+    a = int(x)
+    USERS.add(a)
 
 DB_PATH = f'postgresql+asyncpg://{PGUSER}:{PGPASSWORD}@{PGHOST}/{PGDATABASE}'
